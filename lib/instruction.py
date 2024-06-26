@@ -13,7 +13,8 @@ class Operation(Enum):
 class Instruction:
     def __init__(self, operation: Operation, address: int = -1) -> None: 
         self.operation = operation
-        if address > 0 and operation in (Operation.JumpRight, Operation.JumpLeft):
+        if operation in (Operation.JumpRight, Operation.JumpLeft):
+            assert address >= 0, f"address = {address}: Instruction {operation.name} must have address >= 0"
             self.address = address
 
     def __str__(self) -> str:
