@@ -1,25 +1,28 @@
 from enum import Enum, auto
 
 class Operation(Enum):
-    Increase = auto()
-    Decrease = auto()
-    ShiftLeft = auto()
-    ShiftRight = auto()
+    Add = auto()
+    Shift = auto()
     Output = auto()
     Input = auto()
     JumpRight = auto()
     JumpLeft = auto()
 
 class Instruction:
-    def __init__(self, operation: Operation, address: int = -1) -> None: 
+    def __init__(self, operation: Operation, value=None) -> None: 
         self.operation = operation
-        if operation in (Operation.JumpRight, Operation.JumpLeft):
-            assert address >= 0, f"address = {address}: Instruction {operation.name} must have address >= 0"
-            self.address = address
+        match operation:
+            case Operation.JumpRight | Operation.JumpLeft:
+                assert value is not None and value >= 0, f"address = {value}: Instruction {operation.name} must have address >= 0"
+                self.value = value
+            case Operation.Add | Operation.Shift:
+                assert value is not None, f"value = {value}: Instruction {operation.name} must have value >= 0"
+                self.value = value
+
 
     def __str__(self) -> str:
-        if hasattr(self, "address"):
-            return f'{self.operation.name}: {self.address}'
+        if hasattr(self, "value"):
+            return f'{self.operation.name}: {self.value}'
 
         return f'{self.operation.name}'
     

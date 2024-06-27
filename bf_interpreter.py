@@ -9,7 +9,7 @@ def main():
     file_name = sys.argv[1]
     with open(file_name, "r") as f:
         source_code = f.read()
-    source_code = source_code.strip().replace(' ', '')
+    source_code = source_code.strip().replace(' ', '').replace('\n', '')
 
 
     program = Program(source_code)
