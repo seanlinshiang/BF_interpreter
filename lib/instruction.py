@@ -8,6 +8,7 @@ class Operation(Enum):
     JumpRight = auto()
     JumpLeft = auto()
     Clear = auto()
+    AddTo = auto()
 
 class Instruction:
     def __init__(self, operation: Operation, value=None) -> None: 
@@ -16,7 +17,7 @@ class Instruction:
             case Operation.JumpRight | Operation.JumpLeft:
                 assert value is not None and value >= 0, f"address = {value}: Instruction {operation.name} must have address >= 0"
                 self.value = value
-            case Operation.Add | Operation.Shift:
+            case Operation.Add | Operation.Shift | Operation.AddTo:
                 assert value is not None, f"value = {value}: Instruction {operation.name} must have value >= 0"
                 self.value = value
 

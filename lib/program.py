@@ -56,9 +56,20 @@ class Program:
             # case for [-], clearing cell
             case [Instruction(operation=Operation.JumpRight), 
                   Instruction(operation=Operation.Add, value=-1)]:
-                instructions.pop()
-                instructions.pop()
+                for _ in range(2):
+                    instructions.pop()
                 new_inst = Instruction(Operation.Clear)
+
+            # case for add to another cell, [-1>4+1<4]
+            case [Instruction(operation=Operation.JumpRight),
+                  Instruction(operation=Operation.Add, value=-1),
+                  Instruction(operation=Operation.Shift, value=x),
+                  Instruction(operation=Operation.Add, value=1),
+                  Instruction(operation=Operation.Shift, value=y)] if x == -y:
+                for _ in range(5):
+                    instructions.pop()
+                new_inst = Instruction(Operation.AddTo, value=x) 
+
             case _:
                 instructions[prev_address] = Instruction(Operation.JumpRight, value=curr_address)
                 new_inst = Instruction(Operation.JumpLeft, value=prev_address)
@@ -85,7 +96,7 @@ class Program:
 
                 case Instruction(operation=Operation.Input):
                     c = input('\nInput char: ').strip()
-                    memory[pointer] = ord(c)
+                    memory[pointer] = int(c)
 
                 case Instruction(operation=Operation.JumpRight, value=end_addr):
                     if memory[pointer] == 0:
@@ -96,6 +107,10 @@ class Program:
                         program_counter = start_addr
 
                 case Instruction(operation=Operation.Clear):
+                    memory[pointer] = 0
+
+                case Instruction(operation=Operation.AddTo, value=to):
+                    memory[pointer + to] += memory[pointer]
                     memory[pointer] = 0
 
                 case _:
