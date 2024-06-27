@@ -1,7 +1,6 @@
 from lib.instruction import Instruction, Operation
 from collections import deque
 import time
-import io
 
 class Program:
     def __init__(self, source_code):
@@ -44,14 +43,27 @@ class Program:
                         raise RuntimeError("unbalanced bracket")
                     curr_address = len(instructions)
                     prev_address = left_bracket_stack.pop()
-                    instructions[prev_address] = Instruction(Operation.JumpRight, value=curr_address)
-                    new_inst = Instruction(Operation.JumpLeft, value=prev_address)
+                    new_inst = self.optimize_loop(instructions, prev_address, curr_address)
                 case _:
                     pass
             if new_inst is not None:
                 instructions.append(new_inst)
         return instructions
 
+    def optimize_loop(self, instructions, prev_address, curr_address):
+        new_inst = None
+        match instructions[prev_address:curr_address]:
+            # case for [-], clearing cell
+            case [Instruction(operation=Operation.JumpRight), 
+                  Instruction(operation=Operation.Add, value=-1)]:
+                instructions.pop()
+                instructions.pop()
+                new_inst = Instruction(Operation.Clear)
+            case _:
+                instructions[prev_address] = Instruction(Operation.JumpRight, value=curr_address)
+                new_inst = Instruction(Operation.JumpLeft, value=prev_address)
+
+        return new_inst
 
     def run(self):
         program_counter = 0
@@ -59,7 +71,6 @@ class Program:
         pointer = 0
         start_time = time.time()
 
-        strio = io.StringIO()
         print(f"len of instructions: {len(self.instructions)}")
         while program_counter < len(self.instructions):
             match self.instructions[program_counter]:
@@ -70,8 +81,7 @@ class Program:
                     pointer += value
 
                 case Instruction(operation=Operation.Output):
-                    strio.write(chr(memory[pointer]))
-                    # print(chr(memory[pointer]), end='')
+                    print(chr(memory[pointer]), end='')
 
                 case Instruction(operation=Operation.Input):
                     c = input('\nInput char: ').strip()
@@ -85,11 +95,13 @@ class Program:
                     if memory[pointer] != 0:
                         program_counter = start_addr
 
+                case Instruction(operation=Operation.Clear):
+                    memory[pointer] = 0
+
                 case _:
                     pass
             program_counter += 1
 
-        print(strio.getvalue())
         print(memory[:50])
     
         end_time = time.time()

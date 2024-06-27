@@ -7,6 +7,7 @@ class Operation(Enum):
     Input = auto()
     JumpRight = auto()
     JumpLeft = auto()
+    Clear = auto()
 
 class Instruction:
     def __init__(self, operation: Operation, value=None) -> None: 
