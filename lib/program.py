@@ -17,16 +17,16 @@ class Program:
                 case '+' | '-':
                     inc = 1 if character == '+' else -1
                     if len(instructions) == 0 or instructions[-1].operation != Operation.Add:
-                        new_inst = Instruction(Operation.Add, value=inc)
+                        new_inst = Instruction(Operation.Add, val1=inc)
                     else:
-                        instructions[-1].value += inc
+                        instructions[-1].val1 += inc
 
                 case '>' | '<':
                     inc = 1 if character == '>' else -1
                     if len(instructions) == 0 or instructions[-1].operation != Operation.Shift:
-                        new_inst = Instruction(Operation.Shift, value=inc)
+                        new_inst = Instruction(Operation.Shift, val1=inc)
                     else:
-                        instructions[-1].value += inc
+                        instructions[-1].val1 += inc
 
                 case '.':
                     new_inst = Instruction(Operation.Output)
@@ -36,7 +36,7 @@ class Program:
                 case '[':
                     curr_address = len(instructions) 
                     left_bracket_stack.append(curr_address)
-                    new_inst = Instruction(Operation.JumpRight, value=0) 
+                    new_inst = Instruction(Operation.JumpRight, val1=0) 
                     
                 case ']':
                     if len(left_bracket_stack) < 1:
@@ -55,24 +55,24 @@ class Program:
         match instructions[prev_address:curr_address]:
             # case for [-], clearing cell
             case [Instruction(operation=Operation.JumpRight), 
-                  Instruction(operation=Operation.Add, value=-1)]:
+                  Instruction(operation=Operation.Add, val1=-1)]:
                 for _ in range(2):
                     instructions.pop()
                 new_inst = Instruction(Operation.Clear)
 
             # case for add to another cell, [-1>4+1<4]
             case [Instruction(operation=Operation.JumpRight),
-                  Instruction(operation=Operation.Add, value=-1),
-                  Instruction(operation=Operation.Shift, value=x),
-                  Instruction(operation=Operation.Add, value=1),
-                  Instruction(operation=Operation.Shift, value=y)] if x == -y:
+                  Instruction(operation=Operation.Add, val1=-1),
+                  Instruction(operation=Operation.Shift, val1=x),
+                  Instruction(operation=Operation.Add, val1=v),
+                  Instruction(operation=Operation.Shift, val1=y)] if x == -y:
                 for _ in range(5):
                     instructions.pop()
-                new_inst = Instruction(Operation.AddTo, value=x) 
+                new_inst = Instruction(Operation.AddTo, val1=x, val2=v) 
 
             case _:
-                instructions[prev_address] = Instruction(Operation.JumpRight, value=curr_address)
-                new_inst = Instruction(Operation.JumpLeft, value=prev_address)
+                instructions[prev_address] = Instruction(Operation.JumpRight, val1=curr_address)
+                new_inst = Instruction(Operation.JumpLeft, val1=prev_address)
 
         return new_inst
 
@@ -85,11 +85,11 @@ class Program:
         print(f"len of instructions: {len(self.instructions)}")
         while program_counter < len(self.instructions):
             match self.instructions[program_counter]:
-                case Instruction(operation=Operation.Add, value=value):
-                    memory[pointer] += value
+                case Instruction(operation=Operation.Add, val1=val1):
+                    memory[pointer] += val1
 
-                case Instruction(operation=Operation.Shift, value=value):
-                    pointer += value
+                case Instruction(operation=Operation.Shift, val1=val1):
+                    pointer += val1
 
                 case Instruction(operation=Operation.Output):
                     print(chr(memory[pointer]), end='')
@@ -98,19 +98,19 @@ class Program:
                     c = input('\nInput char: ').strip()
                     memory[pointer] = int(c)
 
-                case Instruction(operation=Operation.JumpRight, value=end_addr):
+                case Instruction(operation=Operation.JumpRight, val1=end_addr):
                     if memory[pointer] == 0:
                         program_counter = end_addr
 
-                case Instruction(operation=Operation.JumpLeft, value=start_addr):
+                case Instruction(operation=Operation.JumpLeft, val1=start_addr):
                     if memory[pointer] != 0:
                         program_counter = start_addr
 
                 case Instruction(operation=Operation.Clear):
                     memory[pointer] = 0
 
-                case Instruction(operation=Operation.AddTo, value=to):
-                    memory[pointer + to] += memory[pointer]
+                case Instruction(operation=Operation.AddTo, val1=to, val2=multiplier):
+                    memory[pointer + to] += memory[pointer] * multiplier
                     memory[pointer] = 0
 
                 case _:
